@@ -6,16 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="bmstable" content="./header.json">
 
-  <!-- スタイル -->
   <link rel="stylesheet" href="style/style.css" type="text/css" media="screen,print">
 
-  <!-- jQuery（CDN） -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
   <center>
-    <strong><span style="font-size: 24pt;">熊が出るBMS難易度表 (読み込みに数秒かかります。/まだ難易度表として機能していません!)</span></strong><br>
+    <strong><span style="font-size: 24pt;">熊が出るBMS難易度表 (読み込みに数秒かかります)</span></strong><br>
     <a href="index.html">TOP</a><br>
   </center>
 
@@ -74,6 +72,20 @@
     let currentLevel = "";
     let count = 0;
     let obj_sep = null;
+    
+    // ▼▼▼ ここからが変更点です ▼▼▼
+    
+    // 状態(state)に基づくテキストを定義
+    const stateMap = {
+      1: { text: "(新規追加)", color: "red" },
+      2: { text: "(難易度変更)", color: "blue" },
+      3: { text: "(評価・投票中)", color: "green" },
+      4: { text: "(オススメ)", color: "gold" },
+      5: { text: "(削除)", color: "gray" },
+      6: { text: "(復活)", color: "orange" }
+    };
+    
+    // ▲▲▲ ここまでが変更点です ▲▲▲
 
     info.forEach((item, i) => {
       if (currentLevel !== item.level) {
@@ -87,7 +99,7 @@
       }
 
       let trClass = "tr_normal";
-      if (item.state) trClass = `state${item.state}`;
+      if (item.state && item.state != 0) trClass = `state${item.state}`; // 0以外のstateでCSSクラスも適用
       const row = $(`<tr class='${trClass}'></tr>`);
 
       $("<td width='6%'>" + mark + currentLevel + "</td>").appendTo(row);
@@ -110,8 +122,22 @@
       $("<td width='1%' align='center'><a href='https://mocha-repository.info/song.php?sha256=" + item.sha256 + "' target='_blank'><img src='style/mochair_logo.gif' border='0' alt='Mocha'></a></td>").appendTo(row);
       $("<td width='1%' align='center'><a href='https://www.gaftalk.com/minir/#/viewer/song/" + item.sha256 + "/0' target='_blank'><img src='style/minir_logo.gif' border='0' alt='MinIR'></a></td>").appendTo(row);
 
-      // タイトル
-      $("<td width='20%'><a href='https://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + item.md5 + "' target='_blank'>" + item.title + "</a></td>").appendTo(row);
+      
+      // ▼▼▼ ここからが変更点です ▼▼▼
+
+      // stateに基づくHTMLを生成
+      let stateHTML = "";
+      const stateInfo = stateMap[item.state]; // stateMapはforEachの外側で定義済み
+      
+      if (stateInfo) {
+        stateHTML = `<br><span style="color: ${stateInfo.color}; font-weight: bold; font-size: 0.9em;">${stateInfo.text}</span>`;
+      }
+
+      // タイトル (stateHTML を結合)
+      $("<td width='20%'><a href='https://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + item.md5 + "' target='_blank'>" + item.title + "</a>" + stateHTML + "</td>").appendTo(row);
+      
+      // ▲▲▲ ここまでが変更点です ▲▲▲
+
 
       // アーティスト
       let artistHTML = "";
@@ -150,7 +176,3 @@
   </script>
 </body>
 </html>
-
-
-
-
