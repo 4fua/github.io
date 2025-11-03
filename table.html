@@ -1,242 +1,152 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html>
 <html lang="ja">
-
 <head>
-<title>熊が出るBMS難易度表</title>
-<meta http-equiv="Content-Script-Type" content="text/javascript" />
-<meta http-equiv="Content-Style-Type" content="text/css" />
-<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS" />
-<meta name="bmstable" content="./header.json" /> <!--�@�ǂݍ��ޓ�Փx�\�̃w�b�_�t�@�C���������Ɏw��@-->
-<link href="style/style.css" rel="stylesheet" type="text/css" media="screen,print" />
-<script src="style/jquery-2.0.2.min.js"></script>
+  <meta charset="UTF-8">
+  <title>熊が出るBMS難易度表</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="bmstable" content="./header.json">
+
+  <!-- スタイル -->
+  <link rel="stylesheet" href="style/style.css" type="text/css" media="screen,print">
+
+  <!-- jQuery（CDN） -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
+  <center>
+    <strong><span style="font-size: 24pt;">熊が出るBMS難易度表</span></strong><br>
+    <a href="index.html">TOP</a><br>
+  </center>
 
-<center>
-<strong><span style="font-size: 24pt;">熊が出るBMS難易度表</span></strong><br>
-<a href="index.html">TOP</a><br>
-</center>
+  <div class="tableflame">
+    <table align="center" cellspacing="1" cellpadding="2" border="0" bgcolor="#000000" id="table_int"></table>
+  </div>
 
+  <script>
+  // メニュー切り替え
+  function menu(tName) {
+    const tMenu = document.getElementById(tName).style;
+    tMenu.display = (tMenu.display === 'none') ? 'block' : 'none';
+  }
 
-<!--�@�@�@�@�@���������Փx�\�{�́@�@�@�@�@-->
-<div class="tableflame">
-<table align="center" cellspacing="1" cellpadding=2�@border="0" bgcolor="#000000" id="table_int">
-</table>
-</div>
+  $(document).ready(function () {
+    const headerPath = $("meta[name=bmstable]").attr("content");
+    $.getJSON(headerPath, function (header) {
+      $.getJSON(header.data_url, function (information) {
+        if (header["level_order"]) {
+          makeBMSTable(information, header.symbol, header["level_order"]);
+        } else {
+          makeBMSTable(information, header.symbol);
+        }
+      });
+    });
+  });
 
-<script language="javascript" type="text/javascript">
-
-// ���j���[�J��
-function menu(tName){
-	var tMenu = document.getElementById(tName).style;
-	if (tMenu.display == 'none'){
-		tMenu.display = "block";
-	}else{
-		tMenu.display = "none";
-	}
-}
-
-
-$(document).ready(function(){
-	$.getJSON($("meta[name=bmstable]").attr("content"), function(header){
-		$.getJSON(header.data_url, function(information){
-			// header��sort�L���ŕ���
-			if(header["level_order"]){
-				makeBMSTable(information,header.symbol,header["level_order"]);
-			} else {
-			makeBMSTable(information,header.symbol);
-			}
-		});
-	});
-});
-
-
-// �\�[�g�̂��߂̈����ǉ�
-function makeBMSTable(info, mark, order) {
-	// order�����w��̏ꍇ��null
-	if(typeof order === 'undefined'){
-		order = null;
-	}
-	
-    var x = "";
-    var ev = "";
-    var count = 0;
-    var obj = $("#table_int");
-
-	// �\�[�g
-	if(order != "" && order != null){
-		// herder.json��sort�����݂���ꍇ�͎w�菇->�^�C�g�����Ƀ\�[�g
-		
-		var orderAry = [];
-		for(var l = 0; l < order.length; l++){
-			orderAry.push(order[l].toString());
-		}
-		
-		for(var j = 0; j < info.length; j++){
-		    var index=orderAry.indexOf(info[j]["level"]);
-		    info[j]["_index"]=index;
-		}
-
-		info.sort(function(a,b){
-		    if(a["_index"] < b["_index"]){
-				return -1;
-		    } else if(a["_index"] > b["_index"]){
-				return 1;
-			} else if( a["title"].toLowerCase() < b["title"].toLowerCase() ){
-				return -1;
-			} else if( a["title"].toLowerCase() > b["title"].toLowerCase() ){
-				return 1;
-			} else {
-	�@	�@�@	return 0;
-			}
-		});
-		for(var k=0; k < info.length; k++){
-			delete info[k]["_index"];
-		}
-	} else {
-		// �����łȂ��ꍇ�̓��x����->�^�C�g�����Ƀ\�[�g
-		info.sort(
-			function(a,b){
-				var aLv = a["level"].toString();
-				var bLv = b["level"].toString();
-				if(isNaN(a["level"]) == false && isNaN(b["level"]) == false){
-					return a["level"]-b["level"];
-				} else if( aLv < bLv ){
-					return -1;
-				} else if( aLv > bLv ){
-					return 1;
-				} else if( a["title"].toLowerCase() < b["title"].toLowerCase() ){
-					return -1;
-				} else if( a["title"].toLowerCase() > b["title"].toLowerCase() ){
-					return 1;
-				} else {
-		�@	�@�@	return 0;
-				}
-			}
-		);
-	}
-	
-    // �\�̃N���A
+  // 難易度表生成
+  function makeBMSTable(info, mark, order = null) {
+    const obj = $("#table_int");
     obj.html("");
-    $("<tr height='20' style='color:white;background-color:#666666'><td align='center'>LV</td><td align='center'>����</td><td align='center'>����</td><td colspan='2' align='center'>beatoraja IR</td><td align='center'>�^�C�g��</td><td align='center'>�{��</td><td align='center'>����</td><td align='center'>�R�����g</td></tr>").appendTo(obj);
-    var obj_sep = null;
-    for (var i = 0; i < info.length; i++) {
-        // ��x���Ƃ̋�؂�
-        if (x != info[i].level) {
-            // �O�̋�؂�ɕ��ʐ��A���ϖ��x��ǉ�
-          	if (obj_sep != null) {
-                obj_sep.html("<td colspan='9' align='center'>" + "<b>" + mark + x + " (" + count + "����)</b></td>");
-            }
-            obj_sep = $("<tr class='tr_separate' id='" + mark + info[i].level + "'></tr>");
-            obj_sep.appendTo(obj);
-            count = 0;
-            x = info[i].level;
-        }
-        // �{��
-        var str = $("<tr class='tr_normal'></tr>");
 
-        if(info[i].state == 1) {
-        str = $("<tr class='state1'></tr>");
-        }
-        if(info[i].state == 2) {
-        str = $("<tr class='state2'></tr>");
-        }
-        if(info[i].state == 3) {
-        str = $("<tr class='state3'></tr>");
-        }
-        if(info[i].state == 4) {
-        str = $("<tr class='state4'></tr>");
-        }
-        if(info[i].state == 5) {
-        str = $("<tr class='state5'></tr>");
-        }
-        if(info[i].state == 6) {
-        str = $("<tr class='state6'></tr>");
+    $("<tr height='20' style='color:white;background-color:#666666'>" +
+      "<td align='center'>LV</td><td align='center'>動画</td><td align='center'>譜面</td>" +
+      "<td colspan='2' align='center'>beatoraja IR</td>" +
+      "<td align='center'>タイトル</td><td align='center'>作者</td>" +
+      "<td align='center'>差分</td><td align='center'>コメント</td>" +
+    "</tr>").appendTo(obj);
 
-        }
-
-        // ���x���\�L
-        $("<td width='6%'>" + mark + x + "</td>").appendTo(str);
-        // ����
-		if(info[i].video1 != "" && info[i].video1 != null){
-			// �j�R�j�R
-			$("<td width='1%' align='center'><a href='http://www.nicovideo.jp/watch/sm" + info[i].video1 + "' target='_blank'><img src='style/nico.gif' border='0' alt='�j�R�j�R����' /></a></td>").appendTo(str);
-		} else if(info[i].video2 != "" && info[i].video2 != null){
-			// YouTube
-			$("<td width='1%' align='center'><a href='http://www.youtube.com/watch?v=" + info[i].video2 + "' target='_blank'><img src='style/youtube.gif' border='0' alt='Youtube' /></a></td>").appendTo(str);
-		} else if(info[i].video3 != "" && info[i].video3 != null){
-			// vimeo
-			$("<td width='1%' align='center'><a href='http://vimeo.com/" + info[i].video3 + "' target='_blank'><img src='style/vimeo.gif' border='0' alt='vimeo' /></a></td>").appendTo(str);
-		} else {
-        	$("<td width='1%'></td>").appendTo(str);
-		}
-�@�@�@�@// ���ʉ摜
-�@�@�@�@$("<td width='1%' align='center'><a href='https://bms-score-viewer.pages.dev/view?md5=" + info[i].md5 + "' target='_blank'>��</a></td>").appendTo(str);
-
-�@�@�@�@// Mocha Repository
-�@�@�@�@$("<td width='1%' align='center'><a href='https://mocha-repository.info/song.php?sha256=" + info[i].sha256 + "' target='_blank'><img src='/style/mochair_logo.gif' border='0' alt='Mocha Repository' /></a></td>").appendTo(str);
-
-�@�@�@�@// MinIR
-�@�@�@�@$("<td width='1%' align='center'><a href='https://www.gaftalk.com/minir/#/viewer/song/" + info[i].sha256 + "/0' target='_blank'><img src='/style/minir_logo.gif' border='0' alt='MinIR' /></a></td>").appendTo(str); <!-- /0 �� /1 /2 �ɕύX����� CN,HCN ��IR�y�[�W�Ƀ����N����܂� -->
-
-        // �^�C�g��
-        $("<td width='20%'>" + "<a href='http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + info[i].md5 + "' target='_blank'>" + info[i].title + "</a></td>").appendTo(str);
-        // �A�[�e�B�X�g
-        var astr = "";
-        if(info[i].url != "" && info[i].url != null) {
-        	if(info[i].artist != "" && info[i].artist != null) {
-        		astr = "<a href='" + info[i].url + "'>" + info[i].artist + "</a>";
-        	} else {
-        		astr = "<a href='" + info[i].url + "'>" + info[i].url + "</a>";
-        	}
-        } else {
-        	if(info[i].artist != "" && info[i].artist != null) {
-        		astr = info[i].artist;
-        	}
-        }
-        if(info[i].url_pack != "" && info[i].url_pack != null) {
-        	if(info[i].name_pack != "" && info[i].name_pack != null) {
-        		astr += "<br />(<a href='" + info[i].url_pack + "'>" + info[i].name_pack + "</a>)";
-        	} else {
-        		astr += "<br />(<a href='" + info[i].url_pack + "'>" + info[i].url_pack + "</a>)";
-        	}
-        } else {
-        	if(info[i].name_pack != "" && info[i].name_pack != null) {
-        		astr += "<br />(" + info[i].name_pack + ")";
-        	}
-        }
-        $("<td width='20%'>" + astr + "</td>").appendTo(str);
-        // ����
-        if(info[i].url_diff != "" && info[i].url_diff != null) {
-        	if(info[i].name_diff != "" && info[i].name_diff != null) {
-	        $("<td width='15%'><a href='" + info[i].url_diff + "'>" + info[i].name_diff + "</a></td>").appendTo(str);
-        	} else {
-	        $("<td width='15%'><a href='" + info[i].url_diff + "'>" + info[i].url_diff + "</a></td>").appendTo(str);
-        	}
-        } else {
-        	if(info[i].name_diff != "" && info[i].name_diff != null) {
-	        $("<td width='15%'>" + info[i].name_diff + "</td>").appendTo(str);
-        	} else {
-	        $("<td width='15%'></td>").appendTo(str);
-        	}
-        }
-        // �R�����g
-        $("<td width='25%'>" + info[i].comment + "</div></td>").appendTo(str);
-        str.appendTo(obj);
-        count++;
+    // ソート処理
+    if (order && order.length > 0) {
+      const orderAry = order.map(o => o.toString());
+      info.forEach(item => item._index = orderAry.indexOf(item.level.toString()));
+      info.sort((a, b) => a._index - b._index || a.title.localeCompare(b.title));
+      info.forEach(item => delete item._index);
+    } else {
+      info.sort((a, b) => {
+        const aLv = a.level.toString(), bLv = b.level.toString();
+        if (!isNaN(a.level) && !isNaN(b.level)) return a.level - b.level;
+        if (aLv !== bLv) return aLv.localeCompare(bLv);
+        return a.title.localeCompare(b.title);
+      });
     }
 
-    
-    // �Ō�̋�؂菈��
-	// �}�[�N�����������Ă��̂Œǉ�
-    if (obj_sep != null) {
-        obj_sep.html("<td colspan='9' align='center'>" + "<b>" + mark + x + " (" + count + "����)</b></td>");
+    // テーブル構築
+    let currentLevel = "";
+    let count = 0;
+    let obj_sep = null;
+
+    info.forEach((item, i) => {
+      if (currentLevel !== item.level) {
+        if (obj_sep) {
+          obj_sep.html(`<td colspan='9' align='center'><b>${mark}${currentLevel} (${count}譜面)</b></td>`);
+        }
+        obj_sep = $(`<tr class='tr_separate' id='${mark}${item.level}'></tr>`);
+        obj_sep.appendTo(obj);
+        count = 0;
+        currentLevel = item.level;
+      }
+
+      let trClass = "tr_normal";
+      if (item.state) trClass = `state${item.state}`;
+      const row = $(`<tr class='${trClass}'></tr>`);
+
+      $("<td width='6%'>" + mark + currentLevel + "</td>").appendTo(row);
+
+      // 動画リンク
+      let videoHTML = "";
+      if (item.video1) {
+        videoHTML = `<a href='https://www.nicovideo.jp/watch/sm${item.video1}' target='_blank'><img src='style/nico.gif' border='0' alt='ニコ動'></a>`;
+      } else if (item.video2) {
+        videoHTML = `<a href='https://www.youtube.com/watch?v=${item.video2}' target='_blank'><img src='style/youtube.gif' border='0' alt='YouTube'></a>`;
+      } else if (item.video3) {
+        videoHTML = `<a href='https://vimeo.com/${item.video3}' target='_blank'><img src='style/vimeo.gif' border='0' alt='vimeo'></a>`;
+      }
+      $("<td width='1%' align='center'>" + (videoHTML || "") + "</td>").appendTo(row);
+
+      // 譜面画像リンク
+      $("<td width='1%' align='center'><a href='https://bms-score-viewer.pages.dev/view?md5=" + item.md5 + "' target='_blank'>譜</a></td>").appendTo(row);
+
+      // beatoraja IR系リンク
+      $("<td width='1%' align='center'><a href='https://mocha-repository.info/song.php?sha256=" + item.sha256 + "' target='_blank'><img src='style/mochair_logo.gif' border='0' alt='Mocha'></a></td>").appendTo(row);
+      $("<td width='1%' align='center'><a href='https://www.gaftalk.com/minir/#/viewer/song/" + item.sha256 + "/0' target='_blank'><img src='style/minir_logo.gif' border='0' alt='MinIR'></a></td>").appendTo(row);
+
+      // タイトル
+      $("<td width='20%'><a href='https://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + item.md5 + "' target='_blank'>" + item.title + "</a></td>").appendTo(row);
+
+      // アーティスト
+      let artistHTML = "";
+      if (item.url) {
+        artistHTML = `<a href='${item.url}' target='_blank'>${item.artist || item.url}</a>`;
+      } else if (item.artist) {
+        artistHTML = item.artist;
+      }
+      if (item.url_pack) {
+        artistHTML += `<br>(<a href='${item.url_pack}' target='_blank'>${item.name_pack || item.url_pack}</a>)`;
+      } else if (item.name_pack) {
+        artistHTML += `<br>(${item.name_pack})`;
+      }
+      $("<td width='20%'>" + artistHTML + "</td>").appendTo(row);
+
+      // 差分
+      let diffHTML = "";
+      if (item.url_diff) {
+        diffHTML = `<a href='${item.url_diff}' target='_blank'>${item.name_diff || item.url_diff}</a>`;
+      } else if (item.name_diff) {
+        diffHTML = item.name_diff;
+      }
+      $("<td width='15%'>" + (diffHTML || "") + "</td>").appendTo(row);
+
+      // コメント
+      $("<td width='25%'>" + (item.comment || "") + "</td>").appendTo(row);
+
+      row.appendTo(obj);
+      count++;
+    });
+
+    if (obj_sep) {
+      obj_sep.html(`<td colspan='9' align='center'><b>${mark}${currentLevel} (${count}譜面)</b></td>`);
     }
-}
-</script>
-
-
+  }
+  </script>
 </body>
-
 </html>
