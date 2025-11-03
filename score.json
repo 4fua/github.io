@@ -1,9 +1,14 @@
-﻿
-
 [
-{"level":"0","title":"熊　出　現　で　休　講","sha256":"","md5":"","video1":"","video2":"","url_diff":"","name_diff":"","url":"","artist":"","comment":"自作差分。","state":"1"},
-{"level":"?","title":"DRAGONLADY","sha256":"","md5":"","video1":"","video2":"","url_diff":"","name_diff":"","url":"","artist":"","comment":"","state":"6"}]
-
-
-
-
+  {
+    "level": "0",
+    "title": "熊　出　現　で　休　講",
+    "comment": "自作差分。",
+    "state": "1"
+  },
+  {
+    "level": "!?",
+    "title": "DRAGONLADY",
+    "comment": "",
+    "state": "6"
+  }
+]
