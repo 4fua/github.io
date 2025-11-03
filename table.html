@@ -53,28 +53,130 @@
       "<td align='center'>差分</td><td align='center'>コメント</td>" +
     "</tr>").appendTo(obj);
 
-    // ソート処理
+    // ▼▼▼ ここからが変更点です (ソート処理) ▼▼▼
+    // ソート処理を、一番シンプルなものに戻しました。
     if (order && order.length > 0) {
-      // header.jsonのlevel_orderが指定されている場合の処理
       const orderAry = order.map(o => o.toString());
-      // orderAryに無いレベル(indexOfが-1)が先頭に来てしまうのを防ぐため、
-      // -1の場合は大きな値(Infinity)に置き換えてソートする
-      info.forEach(item => {
-          let index = orderAry.indexOf(item.level.toString());
-          item._index = (index === -1) ? Infinity : index;
-      });
-      info.sort((a, b) => {
-          if (a._index === Infinity && b._index === Infinity) {
-              // 両方ともlevel_orderに無い場合は、デフォルトソート
-              return defaultSort(a, b);
-          }
-          return a._index - b._index || a.title.localeCompare(b.title);
-      });
+      info.forEach(item => item._index = orderAry.indexOf(item.level.toString()));
+      info.sort((a, b) => a._index - b._index || a.title.localeCompare(b.title));
       info.forEach(item => delete item._index);
-
     } else {
-      // ▼▼▼ ここからが変更点です (デフォルトソート) ▼▼▼
-      // level_order が無い場合のデフォルトソート
-      info.sort(defaultSort);
+      // level_orderが無い場合は、数字・文字列の単純な昇順ソート
+      info.sort((a, b) => {
+        const aLv = a.level.toString(), bLv = b.level.toString();
+        if (!isNaN(a.level) && !isNaN(b.level)) return a.level - b.level;
+        if (aLv !== bLv) return aLv.localeCompare(bLv);
+        return a.title.localeCompare(b.title);
+      });
+    }
+    // ▲▲▲ ここまでが変更点です ▲▲▲
 
 
+    // テーブル構築
+    let currentLevel = "";
+    let count = 0;
+    let obj_sep = null;
+    
+    // 状態(state)に基づくテキストを定義
+    const stateMap = {
+      1: { text: "(新規追加)", color: "red" },
+      2: { text: "(難易度変更)", color: "blue" },
+      3: { text: "(評価・投票中)", color: "green" },
+      4: { text: "(オススメ)", color: "gold" },
+      5: { text: "(削除)", color: "gray" },
+      6: { text: "(復活)", color: "orange" }
+    };
+
+    info.forEach((item, i) => {
+      if (currentLevel !== item.level) {
+        if (obj_sep) {
+          obj_sep.html(`<td colspan='9' align='center'><b>${mark}${currentLevel} (${count}譜面)</b></td>`);
+        }
+        obj_sep = $(`<tr class='tr_separate' id='${mark}${item.level}'></tr>`);
+        obj_sep.appendTo(obj);
+        count = 0;
+        currentLevel = item.level;
+      }
+
+      let trClass = "tr_normal";
+      if (item.state && item.state != 0) trClass = `state${item.state}`;
+      const row = $(`<tr class='${trClass}'></tr>`);
+
+      $("<td width='6%'>" + mark + currentLevel + "</td>").appendTo(row);
+
+      // 動画リンク
+      let videoHTML = "";
+      if (item.video1) {
+        videoHTML = `<a href='https://www.nicovideo.jp/watch/sm${item.video1}' target='blank'><img src='style/nico.gif' border='0' alt='ニコ動'></a>`;
+      } else if (item.video2) {
+        videoHTML = `<a href='https://www.youtube.com/watch?v=${item.video2}' target='blank'><img src='style/youtube.gif' border='0' alt='YouTube'></a>`;
+      } else if (item.video3) {
+        videoHTML = `<a href='https://vimeo.com/${item.video3}' target='blank'><img src='style/vimeo.gif' border='0' alt='vimeo'></a>`;
+      }
+      $("<td width='1%' align='center'>" + (videoHTML || "") + "</td>").appendTo(row);
+
+      // 譜面画像リンク
+      $("<td width='1%' align='center'><a href='https://bms-score-viewer.pages.dev/view?md5=" + item.md5 + "' target='blank'>譜</a></td>").appendTo(row);
+
+      // beatoraja IR系リンク
+      $("<td width='1%' align='center'><a href='https://mocha-repository.info/song.php?sha256=" + item.sha256 + "' target='blank'><img src='style/mochair_logo.gif' border='0' alt='Mocha'></a></td>").appendTo(row);
+      $("<td width='1%' align='center'><a href='https://www.gaftalk.com/minir/#/viewer/song/" + item.sha256 + "/0' target='blank'><img src='style/minir_logo.gif' border='0' alt='MinIR'></a></td>").appendTo(row);
+
+      // stateに基づくHTMLを生成
+      let stateHTML = "";
+      const stateInfo = stateMap[item.state];
+      
+      if (stateInfo) {
+        stateHTML = `<br><span style="color: ${stateInfo.color}; font-weight: bold; font-size: 0.9em;">${stateInfo.text}</span>`;
+      }
+
+      // タイトル (stateHTML を結合)
+      $("<td width='20%'><a href='https://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + item.md5 + "' target='_blank'>" + item.title + "</a>" + stateHTML + "</td>").appendTo(row);
+      
+      
+      // アーティスト
+      let artistHTML = "";
+      
+      // 1. アーティスト名 (item.artist)
+      if (item.artist) {
+        artistHTML = item.artist;
+      }
+      
+      // 2. パック名 (item.name_pack)
+      if (item.name_pack) {
+        artistHTML += `<br>(${item.name_pack})`;
+      }
+      
+      // 3. 本体URL (item.url)
+      if (item.url) {
+        if (artistHTML !== "") {
+           artistHTML += "<br>";
+        }
+        artistHTML += `[<a href='${item.url}' target='_blank'>本体URL</a>]`; 
+      }
+      
+      $("<td width='20%'>" + artistHTML + "</td>").appendTo(row);
+
+
+      // 差分
+      let diffHTML = "";
+      if (item.url_diff) {
+        diffHTML = `<a href='${item.url_diff}' target='_blank'>[差分URL]</a>`;
+      }
+      $("<td width='15%'>" + (diffHTML || "") + "</td>").appendTo(row);
+      
+
+      // コメント
+      $("<td width='25%'>" + (item.comment || "") + "</td>").appendTo(row);
+
+      row.appendTo(obj);
+      count++;
+    });
+
+    if (obj_sep) {
+      obj_sep.html(`<td colspan='9' align='center'><b>${mark}${currentLevel} (${count}譜面)</b></td>`);
+    }
+  }
+  </script>
+</body>
+</html>
