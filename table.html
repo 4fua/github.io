@@ -9,6 +9,20 @@
   <link rel="stylesheet" href="style/style.css" type="text/css" media="screen,print">
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <style>
+    /* ▼▼▼ ここからが変更点です (説明文用のスタイル) ▼▼▼ */
+    /* 説明文を中央寄せにし、表との間に余白を追加します */
+    .description-text {
+      text-align: center;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      padding-left: 10%; /* 左右に余白を持たせる */
+      padding-right: 10%;
+      line-height: 1.6; /* 行間を少し広げる */
+    }
+    /* ▲▲▲ ここまでが変更点です ▲▲▲ */
+  </style>
 </head>
 
 <body>
@@ -17,6 +31,13 @@
     <a href="index.html">TOP</a><br>
   </center>
 
+  <div class="description-text">
+    <p>
+      最終更新：2025/11/4
+      <br>
+      管理：@fua_ril(twitter)　熊1=sl1 BGAや曲名などに熊がいるBMSをまとめました。
+    </p>
+  </div>
   <div class="tableflame">
     <table align="center" cellspacing="1" cellpadding="2" border="0" bgcolor="#000000" id="table_int"></table>
   </div>
@@ -46,15 +67,14 @@
     const obj = $("#table_int");
     obj.html("");
 
-    // ▼▼▼ ここからが変更点です (ヘッダー) ▼▼▼
+    // ヘッダー (列が10個のバージョン)
     $("<tr height='20' style='color:white;background-color:#666666'>" +
       "<td align='center'>LV</td><td align='center'>動画</td><td align='center'>譜面</td>" +
       "<td colspan='2' align='center'>beatoraja IR</td>" +
       "<td align='center'>タイトル</td><td align='center'>作者</td>" +
-      "<td align='center'>本体URL</td>" + // 「本体URL」列を追加
+      "<td align='center'>本体URL</td>" +
       "<td align='center'>差分</td><td align='center'>コメント</td>" +
     "</tr>").appendTo(obj);
-    // ▲▲▲ ここまでが変更点です ▲▲▲
 
     // ソート処理 (シンプルなもの)
     if (order && order.length > 0) {
@@ -89,9 +109,7 @@
     info.forEach((item, i) => {
       if (currentLevel !== item.level) {
         if (obj_sep) {
-          // ▼▼▼ ここからが変更点です (colspan) ▼▼▼
-          obj_sep.html(`<td colspan='10' align='center'><b>${mark}${currentLevel} (${count}譜面)</b></td>`); // 9 -> 10
-          // ▲▲▲ ここまでが変更点です ▲▲▲
+          obj_sep.html(`<td colspan='10' align='center'><b>${mark}${currentLevel} (${count}譜面)</b></td>`);
         }
         obj_sep = $(`<tr class='tr_separate' id='${mark}${item.level}'></tr>`);
         obj_sep.appendTo(obj);
@@ -135,53 +153,39 @@
       $("<td width='20%'><a href='https://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + item.md5 + "' target='_blank'>" + item.title + "</a>" + stateHTML + "</td>").appendTo(row);
       
       
-      // ▼▼▼ ここからが変更点です (アーティスト) ▼▼▼
-      // アーティスト (本体URLのロジックを削除)
+      // アーティスト
       let artistHTML = "";
-      
       if (item.artist) {
         artistHTML = item.artist;
       }
       if (item.name_pack) {
         artistHTML += `<br>(${item.name_pack})`;
       }
-      $("<td width='20%'>" + artistHTML + "</td>").appendTo(row); // Width 20%
-      // ▲▲▲ ここまでが変更点です ▲▲▲
+      $("<td width='20%'>" + artistHTML + "</td>").appendTo(row);
 
-
-      // ▼▼▼ ここからが変更点です (本体URL) ▼▼▼
-      // 本体URL (新しい列として追加)
+      // 本体URL
       let urlHTML = "";
       if (item.url) {
         urlHTML = `<a href='${item.url}' target='_blank'>[本体URL]</a>`;
       }
-      $("<td width='10%'>" + (urlHTML || "") + "</td>").appendTo(row); // Width 10%
-      // ▲▲▲ ここまでが変更点です ▲▲▲
+      $("<td width='10%'>" + (urlHTML || "") + "</td>").appendTo(row);
 
-
-      // ▼▼▼ ここからが変更点です (差分) ▼▼▼
-      // 差分 (Widthを変更)
+      // 差分
       let diffHTML = "";
       if (item.url_diff) {
         diffHTML = `<a href='${item.url_diff}' target='_blank'>[差分URL]</a>`;
       }
-      $("<td width='10%'>" + (diffHTML || "") + "</td>").appendTo(row); // Width 10%
-      // ▲▲▲ ここまでが変更点です ▲▲▲
+      $("<td width='10%'>" + (diffHTML || "") + "</td>").appendTo(row);
       
-
-      // ▼▼▼ ここからが変更点です (コメント) ▼▼▼
-      // コメント (Widthを変更)
-      $("<td width='20%'>" + (item.comment || "") + "</td>").appendTo(row); // Width 20%
-      // ▲▲▲ ここまでが変更点です ▲▲▲
+      // コメント
+      $("<td width='20%'>" + (item.comment || "") + "</td>").appendTo(row);
 
       row.appendTo(obj);
       count++;
     });
 
     if (obj_sep) {
-      // ▼▼▼ ここからが変更点です (colspan) ▼▼▼
-      obj_sep.html(`<td colspan='10' align='center'><b>${mark}${currentLevel} (${count}譜面)</b></td>`); // 9 -> 10
-      // ▲▲▲ ここまでが変更点です ▲▲▲
+      obj_sep.html(`<td colspan='10' align='center'><b>${mark}${currentLevel} (${count}譜面)</b></td>`);
     }
   }
   </script>
