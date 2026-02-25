@@ -2,9 +2,10 @@
    
 "name" : "fua難易度表",
 "symbol" : "fu",
-"data_url" : "https://script.google.com/macros/s/AKfycbz-nMq2RiJBKw1aiF-96hXtmp7nvTnrr0-x0khZcUwlTRO1ni0QKhgCj8xKR3ghpoEICw/exec",
+"data_url" : "https://script.google.com/macros/s/AKfycbwP2PPW5qtY8XqfjmJh0-0U31_59AGmM9Wrgd-Q-GngdBgYrHLUoMeoOq7RTnfpweJ9zA/exec",
 "level_order": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 99, "?"]
 }
+
 
 
 
